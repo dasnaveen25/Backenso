@@ -11,7 +11,14 @@ import { Server } from "socket.io";
 dotenv.config();
 const app = express();
 app.use(bodyParser.json());
-app.use(cors());
+
+// Configure CORS to allow multiple origins
+const corsOptions = {
+  origin: ["http://localhost:5173"],
+  methods: ["GET", "POST"],
+  credentials: true,
+};
+app.use(cors(corsOptions));
 
 const PORT = 5000;
 
@@ -19,17 +26,13 @@ const PORT = 5000;
 dbConnection();
 // Initialize user schema
 userSchema();
-  
+
 // Create HTTP server
 const server = http.createServer(app);
 
 // Create Socket.io server instance
 const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:5174",
-    methods: ["GET", "POST"],
-    credentials: true, // Corrected 'Credential' to 'credentials'
-  },
+  cors: corsOptions,
 });
 
 // Socket.io connection handler
@@ -37,7 +40,7 @@ io.on("connection", (socket) => {
   console.log("Socket Connected");
 
   socket.on("disconnect", () => {
-    console.log("User disconnected"); // Corrected 'Disconnect' to 'disconnect'
+    console.log("User disconnected");
   });
 });
 
@@ -54,3 +57,5 @@ app.use("/user", registerRouter);
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+export { io };

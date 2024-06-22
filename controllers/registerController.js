@@ -1,83 +1,91 @@
 import bcrypt from "bcrypt";
 import registerModel from "../model/registerModel.js";
 import jwt from "jsonwebtoken";
-import express from "express";
-import cors from "cors";
-// import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const registerUser = async (req, res) => {
+  const { io } = req;
   const { name, mobile, password } = req.body;
 
   if (!name || !mobile || !password) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
-  const userExists = await registerModel.findOne({ mobile });
-  if (userExists) {
-    return res.status(400).json({ message: "User already exists" });
-    io.emit("erorr", error);
-  }
+  try {
+    const userExists = await registerModel.findOne({ mobile });
+    if (userExists) {
+      io.emit("login", { message: "User already exists" });
+      return res.status(400).json({ message: "User already exists" });
+    }
 
-  // Hash the password
-  const hashepassword = await bcrypt.hash(password, 10);
-  console.log("hashepassword", hashepassword);
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log("hashedPassword", hashedPassword);
 
-  const user = await registerModel.create({
-    name,
-    mobile,
-    password: hashepassword,
-  });
-
-  // check if user already exists
-  if (!user) {
-    res.status(400).json({
-      _id: user._id,
-      name: user.name,
-      mobile: user.mobile,
+    const user = await registerModel.create({
+      name,
+      mobile,
+      password: hashedPassword,
     });
-    console.log("user created successfully", user);
-  } else {
-    res.status(400).json({ message: "User already exists" });
+
+    if (user) {
+      io.emit("login", { message: "User created successfully" });
+      res.status(201).json({
+        _id: user._id,
+        name: user.name,
+        mobile: user.mobile,
+      });
+      console.log("User created successfully", user);
+    } else {
+      res.status(400).json({ message: "User creation failed" });
+    }
+  } catch (error) {
+    console.error("Registration Error:", error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
 const loginUser = async (req, res) => {
+  const { io } = req;
   const { mobile, password } = req.body;
 
   try {
     if (!mobile || !password) {
-      res.status(400);
-      throw new Error("Please provide both mobile and password");
+      io.emit("login", { message: "Please provide both mobile and password" });
+      return res
+        .status(400)
+        .json({ message: "Please provide both mobile and password" });
     }
 
     const user = await registerModel.findOne({ mobile });
 
     if (!user) {
-      res.status(400);
-      throw new Error("User not found");
+      io.emit("login", { message: "User not found" });
+      return res.status(400).json({ message: "User not found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      res.status(400);
-      throw new Error("Invalid credentials");
+      io.emit("login", { message: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const token = jwt.sign(
       {
-        id: user.id,
+        id: user._id,
       },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "1d" }
     );
 
+    io.emit("login", { message: "Login naveen" });
     res.status(200).json({ token });
   } catch (error) {
     console.error("Login Error:", error.message);
+    io.emit("login", { message: error.message });
     res.status(400).json({ message: error.message });
   }
 };
@@ -101,7 +109,5 @@ const user = async (req, res) => {
   }
   res.status(200).json(user);
 };
-
-// create a new user
 
 export { registerUser, loginUser, profile, user };

@@ -7,10 +7,19 @@ import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import http from "http";
 import { Server } from "socket.io";
+import cloudinary from "cloudinary";
+import multer from "multer";
+// import CloudinaryStorage from "multer-storage-cloudinary";
 
 dotenv.config();
 const app = express();
 app.use(bodyParser.json());
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
 
 // Configure CORS to allow multiple origins
 const corsOptions = {

@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import registerModel from "../model/registerModel.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import postModel from "../model/postModel.js";
 
 dotenv.config();
 
@@ -110,4 +111,17 @@ const user = async (req, res) => {
   res.status(200).json(user);
 };
 
-export { registerUser, loginUser, profile, user };
+const uploadPost = async (req, res) => {
+  try {
+    const newImage = new Image({
+      imageUrl: req.file.path,
+      text: req.body.text,
+    });
+    await newImage.save();
+    res.json(newImage);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export { registerUser, loginUser, profile, user, uploadPost };

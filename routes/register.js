@@ -18,5 +18,6 @@ router.get("/user", ValidateToken, user);
 // router.post("/upload", upload, uploadPost);
 
 router.route("/upload").post(upload, uploadPost);
+console.log("uploadPost", uploadPost);
 
 export default router;

@@ -3,6 +3,7 @@ import registerModel from "../model/registerModel.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import postModel from "../model/postModel.js";
+import cloudinary from "cloudinary";
 
 dotenv.config();
 
@@ -111,15 +112,55 @@ const user = async (req, res) => {
   res.status(200).json(user);
 };
 
+// const uploadPost = async (req, res) => {
+//   try {
+//     console.log("req.file", req.file);
+//     const newImage = new Image({
+//       imageUrl: req.file.path,
+//       text: req.body.text,
+//     });
+//     console.log("newImage", newImage);
+//     const imageUpload = await cloudinary.v2.uploader.upload(req.file.path);
+//     console.log("imageUpload", imageUpload);
+//     const data = await postModel.create({
+//       imageUrl: imageUpload.secure_url,
+//       text: req.body.text,
+//     });
+//     res.json(data);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
 const uploadPost = async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    console.log("req.file", req.file);
+
+    // Assuming Image is your Mongoose model
     const newImage = new Image({
       imageUrl: req.file.path,
       text: req.body.text,
     });
-    await newImage.save();
-    res.json(newImage);
+
+    console.log("newImage", newImage);
+
+    // Upload image to Cloudinary
+    const imageUpload = await cloudinary.uploader.upload(req.file.path);
+    console.log("imageUpload", imageUpload);
+
+    // Create new post with Cloudinary URL
+    const data = await postModel.create({
+      imageUrl: imageUpload.secure_url,
+      text: req.body.text,
+    });
+
+    res.json(data);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 };

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 // Define the schema
 const postData = new mongoose.Schema({
-  photo: {
+  image: {
     type: String,
   },
 
@@ -12,7 +12,7 @@ const postData = new mongoose.Schema({
 });
 
 // Create a model
-const postModel = mongoose.model("User", postData);
+const postModel = mongoose.model("UserPost", postData);
 
 // Export the model
 export default postModel;

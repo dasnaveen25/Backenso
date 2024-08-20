@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import registerModel from "../model/registerModel.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import postModel from "../model/postModel.js";
+
 import cloudinary from "cloudinary";
 
 dotenv.config();
@@ -127,7 +127,7 @@ const uploadPost = async (req, res) => {
     console.log("imageUpload", imageUpload);
 
     // Create new post with Cloudinary URL
-    const data = await postModel.create({
+    const data = await registerModel.create({
       image: imageUpload.secure_url,
       text,
     });
@@ -142,18 +142,18 @@ const uploadPost = async (req, res) => {
 };
 
 const uploadImag = async (req, res) => {
-  const data = await postModel.find();
+  const data = await registerModel.find();
   res.send(data);
 };
 
 const deletePost = async (req, res) => {
-  console.log('delete called');
-  
+  console.log("delete called");
+
   try {
     const { _id } = req.params;
 
     // Find the post to delete
-    const post = await postModel.findById(_id);
+    const post = await registerModel.findById(_id);
 
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
@@ -161,12 +161,12 @@ const deletePost = async (req, res) => {
 
     // Optionally delete the image from Cloudinary
     if (post.image) {
-      const publicId = post.image.split('/').pop().split('.')[0];
+      const publicId = post.image.split("/").pop().split(".")[0];
       await cloudinary.v2.uploader.destroy(publicId);
     }
 
     // Delete the post from the database
-    await postModel.findByIdAndDelete(_id);
+    await registerModel.findByIdAndDelete(_id);
 
     res.status(200).json({ message: "Post deleted successfully" });
   } catch (err) {
@@ -175,4 +175,30 @@ const deletePost = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser, profile, user, uploadPost, uploadImag, deletePost };
+const getuserdetail = async (req, res) => {
+  try {
+    const { _id } = req.body;
+    console.log(_id);
+    const data = await registerModel.findById(_id);
+
+    if (!data) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    res.status(200).json({ message: "Post deleted successfully", data: data });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export {
+  registerUser,
+  loginUser,
+  profile,
+  user,
+  uploadPost,
+  uploadImag,
+  deletePost,
+  getuserdetail,
+};

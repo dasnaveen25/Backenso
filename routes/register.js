@@ -7,7 +7,9 @@ import {
   user,
   uploadPost,
   uploadImag,
-  deletePost, // Ensure this method is defined in your controller
+  deletePost,
+  getuserdetail,
+  // Ensure this method is defined in your controller
 } from "../controllers/registerController.js";
 import ValidateToken from "../Middleware/ValidateToken.js";
 import upload from "../Middleware/multer.js";
@@ -17,15 +19,16 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/profile", ValidateToken, profile);
 router.get("/user", ValidateToken, user);
-router.get("/register", registerUser);
+router.get("/getuser", ValidateToken, getuserdetail);
 
 // Upload routes
-router.route("/uploads")
+router
+  .route("/uploads")
   .get(uploadImag) // Get all uploads
   .post(upload, uploadPost); // Post new uploads
 
 // Delete route for uploads
-router.delete("/uploads/:_id",  deletePost);
+router.delete("/uploads/:_id", deletePost);
 
 console.log("Routes configured");
 

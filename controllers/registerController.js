@@ -83,7 +83,7 @@ const loginUser = async (req, res) => {
       { expiresIn: "10d" }
     );
 
-    io.emit("login", { message: "Login naveen" });
+    io.emit("login", { message: "Login successful" });
     res.status(200).json({ token });
   } catch (error) {
     console.error("Login Error:", error.message);
@@ -112,26 +112,6 @@ const user = async (req, res) => {
   res.status(200).json(user);
 };
 
-// const uploadPost = async (req, res) => {
-//   try {
-//     console.log("req.file", req.file);
-//     const newImage = new Image({
-//       imageUrl: req.file.path,
-//       text: req.body.text,
-//     });
-//     console.log("newImage", newImage);
-//     const imageUpload = await cloudinary.v2.uploader.upload(req.file.path);
-//     console.log("imageUpload", imageUpload);
-//     const data = await postModel.create({
-//       imageUrl: imageUpload.secure_url,
-//       text: req.body.text,
-//     });
-//     res.json(data);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
-
 const uploadPost = async (req, res) => {
   try {
     if (!req.file) {
@@ -141,13 +121,6 @@ const uploadPost = async (req, res) => {
     console.log("req.file", req.file);
 
     const { text } = req.body;
-    // Assuming Image is your Mongoose model
-    // const newImage = new Image({
-    //   imageUrl: req.file.path,
-    //   text: req.body.text,
-    // });
-
-    // console.log("newImage", newImage);
 
     // Upload image to Cloudinary
     const imageUpload = await cloudinary.v2.uploader.upload(req.file.path);
@@ -173,4 +146,33 @@ const uploadImag = async (req, res) => {
   res.send(data);
 };
 
-export { registerUser, loginUser, profile, user, uploadPost, uploadImag };
+const deletePost = async (req, res) => {
+  console.log('delete called');
+  
+  try {
+    const { _id } = req.params;
+
+    // Find the post to delete
+    const post = await postModel.findById(_id);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Optionally delete the image from Cloudinary
+    if (post.image) {
+      const publicId = post.image.split('/').pop().split('.')[0];
+      await cloudinary.v2.uploader.destroy(publicId);
+    }
+
+    // Delete the post from the database
+    await postModel.findByIdAndDelete(_id);
+
+    res.status(200).json({ message: "Post deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export { registerUser, loginUser, profile, user, uploadPost, uploadImag, deletePost };

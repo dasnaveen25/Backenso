@@ -25,7 +25,7 @@ cloudinary.config({
 // // Configure CORS to allow multiple origins
 const corsOptions = {
   origin: ["http://localhost:5173"],
-  methods: ["GET", "POST"],
+  methods: ["GET", "POST", "DELETE"],
   credentials: true,
 };
 app.use(cors(corsOptions));
